@@ -44,14 +44,14 @@
 
 **On macOS / Linux:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv boostup25
+source boostup25/bin/activate
 ```
 
 **On Windows:**
 ```bash
-python -m venv venv
-.\venv\Scripts\activate
+python -m venv boostup25
+.\boostup25\Scripts\activate
 ```
 
 ### **2. 패키지 설치**
@@ -120,4 +120,4 @@ python main.py --use_gin_features --no_log_transform --force_feature_regen
 
 ## **라이선스 (License)**
 
-이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [링크](https://github.com/boost-up-ai-2025/boost-up-ai-2025/blob/main/LICENSE)를 참고하십시오.
+이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [🎗️License](https://github.com/boost-up-ai-2025/boost-up-ai-2025/blob/main/LICENSE)를 참고하십시오.
