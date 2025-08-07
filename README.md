@@ -37,6 +37,17 @@
 
 ---
 
+## **개발 및 실행 환경**
+
+본 프로젝트는 아래 환경에서 개발 및 테스트되었습니다.
+
+* **OS:** Ubuntu 22.04 LTS
+* **Python:** 3.10.18 (Mamba로 구성)
+* **GPU:** NVIDIA GeForce GTX 5090
+* **CUDA Version:** 12.8 nightly
+
+---
+
 ## **설치 (Installation)**
 
 이 가이드는 `pip`과 Python 가상환경을 사용하여 프로젝트 실행 환경을 구성하는 방법을 안내합니다.
@@ -55,20 +66,31 @@ python -m venv boostup25
 .\boostup25\Scripts\activate
 ```
 
-### **2. 패키지 설치**
+### **2. GPU 사용자 PyTorch/DGL 설치 (권장)**
 
-`requirements.txt` 파일을 사용하여 모든 패키지를 설치합니다.
+`molfeat[dgl]`은 PyTorch에 의존합니다. GPU 가속을 사용하려면 시스템의 CUDA 버전에 맞는 PyTorch와 DGL을 먼저 설치해야 합니다.
+
+**본 개발 환경(CUDA 12.8)에서는 아래 명령어를 사용했습니다:**
+```bash
+pip3 install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu128](https://download.pytorch.org/whl/cu128)
+pip3 install dgl -f [https://data.dgl.ai/wheels/cu128/repo.html](https://data.dgl.ai/wheels/cu128/repo.html)
+```
+**⚠️ 중요:** 사용자의 GPU 또는 CUDA 버전이 다른 경우, [PyTorch 공식 홈페이지](https://pytorch.org/get-started/locally/)와 [DGL 공식 홈페이지](https://www.dgl.ai/pages/start.html)에서 자신의 환경에 맞는 설치 명령어를 확인하여 실행하세요
+
+### **3. 나머지 패키지 설치**
+
+`requirements.txt` 파일을 사용하여 나머지 패키지를 설치합니다.
 
 ```bash
 pip install -r requirements.txt
 ```
-**⚠️ 중요:** `rdkit-pypi`는 일부 시스템에서 C++ 빌드 도구가 없어 설치에 실패할 수 있습니다. 오류 발생 시, Mamba/Conda를 통해 `rdkit`을 설치하는 것이 가장 안정적인 대안입니다.
+**⚠️ 참고:** `rdkit-pypi`는 일부 시스템에서 C++ 빌드 도구가 없어 설치에 실패할 수 있습니다. 오류 발생 시, Mamba/Conda를 통해 `rdkit`을 설치하는 것이 가장 안정적인 대안입니다.
 
 ---
 
 ## **실행 (How to Run)**
 
-실행은 **학습**과 **추론**의 두 단계로 나뉩니다. 데이콘 제출 규정에 따라 학습과 추론 스크립트가 분리되어 있습니다.
+실행은 **학습**과 **추론**의 두 단계로 나뉩니다.
 
 ### **1. 데이터 준비**
 
@@ -77,7 +99,7 @@ pip install -r requirements.txt
 
 ### **2. 모델 학습 (`train.py`)**
 
-`train.py`는 K-Fold 교차 검증으로 모델을 학습시키고, 각 Fold의 모델 가중치(`*.cbm`)와 스케일러(`*.pkl`)를 `models/` 폴더에 저장합니다.
+`train.py`는 K-Fold 교차 검증으로 모델을 학습시키고, 각 Fold의 모델 가중치를 `models/` 폴더에 저장합니다.
 
 **최고 성능 옵션으로 학습 실행:**
 ```bash
@@ -91,7 +113,7 @@ python train.py --use_gin_features --no_log_transform --use_gpu
 
 ### **3. 추론 및 제출 파일 생성 (`predict.py`)**
 
-`predict.py`는 `models/` 폴더에 저장된 가중치들을 모두 불러와 테스트 데이터에 대한 예측을 수행하고, 최종 `submission.csv` 파일을 `submission/` 폴더에 생성합니다.
+`predict.py`는 `models/` 폴더에 저장된 가중치들을 불러와 테스트 데이터에 대한 예측을 수행하고, 최종 `submission.csv` 파일을 `submission/` 폴더에 생성합니다.
 
 **저장된 모델로 추론 실행:**
 ```bash
@@ -99,15 +121,8 @@ python predict.py --use_gin_features
 ```
 * **주의:** `predict.py`의 옵션(`--use_gin_features` 등)은 `train.py` 실행 시 사용했던 옵션과 반드시 일치해야 합니다.
 
-### **(참고) 통합 실행 (`main.py`)**
-
-`main.py`는 개발 과정의 편의를 위해 학습과 추론을 한 번에 실행하는 스크립트입니다.
-```bash
-python main.py --use_gin_features --no_log_transform
-```
-
 ---
-## **데이터 출처**
+## **데이터 출처 및 謝辭**
 
 본 연구에 사용된 데이터는 과학기술정보통신부의 후원으로 한국화학연구원, 한국생명공학연구원이 주최하고 한국화합물은행, 국가생명연구자원정보센터(KOBIC)가 주관한 '2025 신약개발 경진대회'를 통해 제공받았습니다. 대회 운영을 맡아주신 데이콘에 감사드립니다.
 
@@ -128,4 +143,4 @@ python main.py --use_gin_features --no_log_transform
 
 ## **라이선스 (License)**
 
-이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [링크](https://github.com/Jonghwan-dev/Boost_Up_AI_25/blob/main/LICENSE)를 참고하십시오.
+이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [LICENSE](https://github.com/Jonghwan-dev/Boost_Up_AI_25/blob/main/LICENSE) 파일을 참고하십시오.
