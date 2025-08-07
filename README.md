@@ -128,4 +128,4 @@ python main.py --use_gin_features --no_log_transform
 
 ## **라이선스 (License)**
 
-이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [링크](https://github.com/boost-up-ai-2025/boost-up-ai-2025/blob/main/LICENSE)를 참고하십시오.
+이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [링크](https://github.com/Jonghwan-dev/Boost_Up_AI_25/blob/main/LICENSE)를 참고하십시오.
