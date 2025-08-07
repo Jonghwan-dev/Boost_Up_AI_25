@@ -20,15 +20,18 @@
 
 ```
 .
-├── cache/                  # 피처 생성 시 캐시 파일이 저장되는 폴더 (자동 생성)
-├── data/                   # 학습/테스트 데이터 폴더
+├── cache/                  # 피처 캐시 폴더 (자동 생성)
+├── data/                   # 데이터 폴더
 │   ├── train.csv
 │   ├── test.csv
 │   └── sample_submission.csv
-├── submission/             # 결과 파일이 저장되는 폴더 (자동 생성)
+├── models/                 # 모델 가중치 폴더 (train.py 실행 시 자동 생성)
+├── submission/             # 결과 파일 폴더 (predict.py 또는 main.py 실행 시 자동 생성)
 ├── features.py             # 분자 피처 생성 스크립트
-├── main.py                 # 메인 실행 스크립트 (학습 및 예측)
 ├── utils.py                # 유틸리티 함수 (평가 지표, 스케일러)
+├── train.py                # 모델 학습 및 가중치 저장 스크립트
+├── predict.py              # 저장된 가중치로 추론 및 제출 파일 생성 스크립트
+├── main.py                 # 학습과 추론을 한번에 실행하는 통합 스크립트
 └── requirements.txt        # 프로젝트 의존성 패키지 목록
 ```
 
@@ -39,8 +42,6 @@
 이 가이드는 `pip`과 Python 가상환경을 사용하여 프로젝트 실행 환경을 구성하는 방법을 안내합니다.
 
 ### **1. 가상환경 생성 및 활성화**
-
-프로젝트의 의존성을 독립적으로 관리하기 위해 새로운 가상환경을 생성합니다.
 
 **On macOS / Linux:**
 ```bash
@@ -56,9 +57,8 @@ python -m venv venv
 
 ### **2. 패키지 설치**
 
-아래 `requirements.txt` 파일의 내용을 프로젝트 루트에 동일한 이름으로 저장한 후, 다음 명령어를 실행하여 모든 패키지를 설치합니다.
+`requirements.txt` 파일을 사용하여 모든 패키지를 설치합니다.
 
-**설치 명령어:**
 ```bash
 pip install -r requirements.txt
 ```
@@ -68,56 +68,64 @@ pip install -r requirements.txt
 
 ## **실행 (How to Run)**
 
+실행은 **학습**과 **추론**의 두 단계로 나뉩니다. 데이콘 제출 규정에 따라 학습과 추론 스크립트가 분리되어 있습니다.
+
 ### **1. 데이터 준비**
 
 `data` 폴더에 `train.csv`, `test.csv`, `sample_submission.csv` 파일을 위치시킵니다.
+(참고: `data` 폴더는 public 데이터이므로, 이 저장소를 clone하면 바로 사용할 수 있습니다.)
 
-"update : data 폴더는 public data이므로 clone으로 간편하게 사용할 수 있도록 조치"
+### **2. 모델 학습 (`train.py`)**
 
-### **2. 모델 학습 및 예측**
+`train.py`는 K-Fold 교차 검증으로 모델을 학습시키고, 각 Fold의 모델 가중치(`*.cbm`)와 스케일러(`*.pkl`)를 `models/` 폴더에 저장합니다.
 
-터미널에서 `main.py` 스크립트를 실행합니다. 다양한 옵션을 통해 실험을 제어할 수 있습니다.
+**최고 성능 옵션으로 학습 실행:**
+```bash
+python train.py --use_gin_features --no_log_transform
+```
 
-**기본 실행 (최고 성능 조합):**
-* GIN 피처를 포함하고, 타겟 변환 및 피처 선택을 하지 않는 기본 설정입니다.
-* CPU를 사용하여 학습합니다.
+**GPU를 사용하여 학습 속도 향상:**
+```bash
+python train.py --use_gin_features --no_log_transform --use_gpu
+```
+
+### **3. 추론 및 제출 파일 생성 (`predict.py`)**
+
+`predict.py`는 `models/` 폴더에 저장된 가중치들을 모두 불러와 테스트 데이터에 대한 예측을 수행하고, 최종 `submission.csv` 파일을 `submission/` 폴더에 생성합니다.
+
+**저장된 모델로 추론 실행:**
+```bash
+python predict.py --use_gin_features
+```
+* **주의:** `predict.py`의 옵션(`--use_gin_features` 등)은 `train.py` 실행 시 사용했던 옵션과 반드시 일치해야 합니다.
+
+### **(참고) 통합 실행 (`main.py`)**
+
+`main.py`는 개발 과정의 편의를 위해 학습과 추론을 한 번에 실행하는 스크립트입니다.
 ```bash
 python main.py --use_gin_features --no_log_transform
 ```
 
-**GPU를 사용하여 학습 속도 향상:**
-* NVIDIA GPU가 설치된 환경에서 사용 가능합니다.
-```bash
-python main.py --use_gin_features --no_log_transform --use_gpu
-```
+---
+## **데이터 출처 및 謝辭**
 
-**피처 캐시 재생성:**
-* 피처를 처음부터 다시 생성하고 싶을 때 사용합니다.
-```bash
-python main.py --use_gin_features --no_log_transform --force_feature_regen
-```
-
-**주요 실행 옵션:**
-* `--use_gin_features`: 사전 훈련된 GIN 피처를 포함합니다. (권장)
-* `--no_log_transform`: 타겟 변수에 로그 변환을 적용하지 않습니다. (권장)
-* `--feature_selection_method`: 피처 선택 방법을 지정합니다. (`none`, `variance`, `correlation`, `all`)
-* `--use_gpu`: GPU를 사용하여 CatBoost 모델을 학습합니다.
-* `--force_feature_regen`: 캐시를 무시하고 피처를 강제로 다시 생성합니다.
-* 자세한 옵션은 `python main.py --help` 명령어로 확인할 수 있습니다.
-
-### **3. 결과 확인**
-
-실행이 완료되면 `submission` 폴더에 최종 예측 결과 파일(`Final_..._submission.csv`)이 생성됩니다.
+본 연구에 사용된 데이터는 과학기술정보통신부의 후원으로 한국화학연구원, 한국생명공학연구원이 주최하고 한국화합물은행, 국가생명연구자원정보센터(KOBIC)가 주관한 '2025 신약개발 경진대회'를 통해 제공받았습니다. 대회 운영을 맡아주신 데이콘에 감사드립니다.
 
 ---
-## **데이터 출처**
 
-본 연구에 사용된 데이터는 과학기술정보통신부의 후원으로 한국화학연구원, 한국생명공학연구원이 주최하고 한국화합물은행, 국가생명연구자원정보센터(KOBIC)가 주관한 '2025 신약개발 경진대회'를 통해 제공받았습니다. 
+## **참고 문헌 (References)**
 
-대회 운영을 맡아주신 데이콘에 감사드립니다.
+1.  Stavropoulou, E., et al. (2018). The Role of Cytochromes P450 in Infection. *Frontiers in Immunology*. https://doi.org/10.3389/fimmu.2018.00089
+2.  Zhang, L., et al. (2021). Nanoparticulate Drug Delivery Strategies to Address Intestinal Cytochrome P450 CYP3A4 Metabolism towards Personalized Medicine. *Pharmaceutics*. https://doi.org/10.3390/pharmaceutics13081261
+3.  Notwell, J. H., & Wood, M. W. (2023). ADMET property prediction through combinations of molecular fingerprints. *arXiv*. https://doi.org/10.48550/arXiv.2310.00174
+4.  Fabian, B., et al. (2020). Molecular representation learning with language models and domain-relevant auxiliary tasks. *arXiv*. https://doi.org/10.48550/arXiv.2011.13230
+5.  Hu, W., et al. (2020). STRATEGIES FOR PRE-TRAINING GRAPH NEURAL NETWORKS. *ICLR 2020*. https://doi.org/10.48550/arXiv.1905.12265
+6.  Bento, A. P. G., et al. (2020). An open source chemical structure curation pipeline using RDKit. *Journal of Cheminformatics*. https://doi.org/10.1186/s13321-020-00456-1
+7.  Prokhorenkova, L., et al. (2018). CatBoost: unbiased boosting with categorical features. *NeurIPS 2018*. https://doi.org/10.48550/arXiv.1706.09516
+8.  Prusty, K. B., et al. (2022). SKCV: Stratified K-fold cross-validation on ML classifiers for predicting cervical cancer. *Biomedical Nanotechnology*. https://doi.org/10.3389/fnano.2022.972421
 
 ---
 
 ## **라이선스 (License)**
 
-이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [링크](https://github.com/boost-up-ai-2025/boost-up-ai-2025/blob/main/LICENSE)를 참고하십시오.
+이 프로젝트는 Apache License 2.0을 따릅니다. 자세한 내용은 [LICENSE](https://github.com/boost-up-ai-2025/boost-up-ai-2025/blob/main/LICENSE) 파일을 참고하십시오.
