@@ -1,4 +1,4 @@
-''' main.py '''
+# main.py
 
 # load libraries (standard libraries)
 import argparse

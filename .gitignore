@@ -3,5 +3,5 @@ cache/
 catboost_info/
 submission/
 wandb/
-data/
+# data/
 exp_wandb.py

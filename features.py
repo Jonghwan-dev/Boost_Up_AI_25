@@ -13,8 +13,8 @@ from tqdm import tqdm
 # disable RDKit warning messages
 RDLogger.DisableLog('rdApp.*')
 
+# from https://www.blopig.com/blog/2022/06/how-to-turn-a-molecule-into-a-vector-of-physicochemical-descriptors-using-rdkit/
 def get_chosen_descriptors():
-    """사용자 정의 RDKit 기술자 리스트"""
     return ['BalabanJ', 'BertzCT', 'Chi0', 'Chi0n', 'Chi0v', 'Chi1',
     'Chi1n', 'Chi1v', 'Chi2n', 'Chi2v', 'Chi3n', 'Chi3v', 'Chi4n', 
     'Chi4v', 'EState_VSA1', 'EState_VSA10', 'EState_VSA11', 'EState_VSA2', 
