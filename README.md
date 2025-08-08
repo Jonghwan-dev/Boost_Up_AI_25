@@ -1,17 +1,20 @@
 # **CYP3A4 효소 저해 예측 모델**
 
-2025 신약개발 경진대회 'Boost up AI 2025' 출품작입니다. 이 프로젝트는 화합물의 2D 구조 정보(SMILES)로부터 인체 내 주요 약물 대사 효소인 CYP3A4의 저해율을 예측하는 머신러닝 파이프라인을 포함합니다.
+2025 신약개발 경진대회 'Boost up AI 2025' 출품작입니다.  
+이 프로젝트는 화합물의 2D 구조 정보(SMILES)로부터 인체 내 주요 약물 대사 효소인 CYP3A4의 저해율을 예측하는 머신러닝 파이프라인을 포함합니다.  
 
 ---
 
 ## **핵심 전략**
 
-본 모델은 **"더 풍부한 분자 표현형이 더 나은 예측을 만든다"** 는 가설 아래, 다음과 같은 전략을 채택했습니다.
+본 모델은 **"더 풍부한 분자 표현형이 더 나은 예측을 만든다"(Domain Generalization)** 는 가설 아래, 다음과 같은 전략을 채택했습니다.
 
-1.  **다각적 피처 생성 (Rich Molecular Representation):**
+1.  **다각적 피처 생성 (Molecular Representation):**
     * 분자의 국소적 구조(Morgan FP), 약물유사체 패턴(Avalon FP), 물리화학적 특성(RDKit Descriptors), 그리고 사전 훈련된 GNN의 잠재 표현(GIN Pre-trained)을 **조합**하여 분자를 다각적으로 표현했습니다.
-2.  **강력한 모델링 및 실험 기반 최적화:**
-    * 고차원 데이터에 강하고 성능이 입증된 **CatBoost** 모델을 사용했습니다.
+    * 피처 생성 과정에서 `features.py`를 참고하세요.
+
+2.  **가벼운 모델링(Light Modeling) 및 실험 기반 최적화:**
+    * 고차원 데이터에 강하고 성능이 입증된 **CatBoost** 모델 하나만을 사용해 다각적 피처의 생성이 기여한 성능 향상을 강조합니다.
     * 실험을 통해 피처 선택이나 타겟 로그 변환과 같은 전처리 단계를 생략하고, 모델이 데이터의 복잡성을 직접 학습하도록 하는 것이 최적의 성능을 냄을 확인했습니다.
 
 ---
@@ -50,41 +53,40 @@
 
 ## **설치 (Installation)**
 
-이 가이드는 `pip`과 Python 가상환경을 사용하여 프로젝트 실행 환경을 구성하는 방법을 안내합니다.
+이 가이드는 `Mamba`를 사용하여 프로젝트 실행 환경을 구성하는 방법을 안내합니다. 
+시작하기 전, [Miniforge](https://github.com/conda-forge/miniforge#miniforge3) 또는 [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge)를 설치해주세요.
 
-### **1. 가상환경 생성 및 활성화**
+### **1. Mamba 가상환경 생성 및 활성화**
 
-**On macOS / Linux:**
-```bash
-python3 -m venv boostup25
-source boostup25/bin/activate
-```
-
-**On Windows:**
-```bash
-python -m venv boostup25
-.\boostup25\Scripts\activate
-```
-
-### **2. GPU 사용자 PyTorch/DGL 설치 (권장)**
-
-`molfeat[dgl]`은 PyTorch에 의존합니다. GPU 가속을 사용하려면 시스템의 CUDA 버전에 맞는 PyTorch와 DGL을 먼저 설치해야 합니다.
-
-**본 개발 환경(CUDA 12.8)에서는 아래 명령어를 사용했습니다:**
-```bash
-pip3 install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu128](https://download.pytorch.org/whl/cu128)
-pip3 install dgl -f [https://data.dgl.ai/wheels/cu128/repo.html](https://data.dgl.ai/wheels/cu128/repo.html)
-```
-**⚠️ 중요:** 사용자의 GPU 또는 CUDA 버전이 다른 경우, [PyTorch 공식 홈페이지](https://pytorch.org/get-started/locally/)와 [DGL 공식 홈페이지](https://www.dgl.ai/pages/start.html)에서 자신의 환경에 맞는 설치 명령어를 확인하여 실행하세요
-
-### **3. 나머지 패키지 설치**
-
-`requirements.txt` 파일을 사용하여 나머지 패키지를 설치합니다.
+터미널에서 아래 명령어를 실행하여 `boostup25`라는 이름의 가상환경을 생성하고 활성화합니다.
 
 ```bash
-pip install -r requirements.txt
+# 'boostup25'라는 이름의 Python 3.10 환경 생성
+mamba create -n boostup25 python=3.10 -y
+
+# 생성된 환경 활성화
+mamba activate boostup25
 ```
-**⚠️ 참고:** `rdkit-pypi`는 일부 시스템에서 C++ 빌드 도구가 없어 설치에 실패할 수 있습니다. 오류 발생 시, Mamba/Conda를 통해 `rdkit`을 설치하는 것이 가장 안정적인 대안입니다.
+
+### **2. 의존성 패키지 설치**
+
+`requirements.txt` 파일에 명시된 모든 의존성 패키지를 설치합니다. `conda-forge` 채널을 함께 사용하면 `rdkit`과 같이 복잡한 패키지도 안정적으로 설치할 수 있습니다.
+
+```bash
+mamba install --file requirements.txt -c conda-forge -y
+```
+
+**[선택] GPU 사용자 PyTorch/DGL 설치**
+
+GPU 가속을 사용하려면, 위 `requirements.txt` 설치 후 시스템의 CUDA 버전에 맞는 PyTorch와 DGL을 설치해야 합니다.  
+(참고: `requirements.txt`에는 CPU 버전의 PyTorch와 DGL이 포함되어 있어, 이 단계는 GPU 사용을 위한 **재설치** 과정입니다.)
+
+**예시 (CUDA 11.8 환경):**
+```bash
+mamba install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y
+mamba install dgl -c dglteam -y
+```
+**⚠️ 중요:** 위 명령어는 예시입니다. 사용자의 CUDA 버전에 맞는 설치 명령어는 [PyTorch 공식 홈페이지](https://pytorch.org/get-started/locally/)와 [DGL 공식 홈페이지](https://www.dgl.ai/pages/start.html)에서 반드시 확인하세요.
 
 ---
 
