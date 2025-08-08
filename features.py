@@ -1,5 +1,10 @@
 # features.py
 
+# Reference
+# Notwell, J. H., & Wood, M. W. (2023). ADMET property prediction through combinations of molecular fingerprints. 
+# *arXiv*. https://doi.org/10.48550/arXiv.2310.00174
+# https://github.com/maplightrx/MapLight-TDC
+
 import numpy as np
 import pandas as pd
 import logging
@@ -13,6 +18,7 @@ from tqdm import tqdm
 # disable RDKit warning messages
 RDLogger.DisableLog('rdApp.*')
 
+# Reference
 # from https://www.blopig.com/blog/2022/06/how-to-turn-a-molecule-into-a-vector-of-physicochemical-descriptors-using-rdkit/
 def get_chosen_descriptors():
     return ['BalabanJ', 'BertzCT', 'Chi0', 'Chi0n', 'Chi0v', 'Chi1',
@@ -83,6 +89,11 @@ def get_all_features(smiles_series: pd.Series, use_gin: bool):
     all_features_list.append(np.array(rdkit_desc, dtype=np.float32))
     
     # GIN feature generation (optional)
+    # Reference
+    # Fabian, B., et al. (2020). Molecular representation learning with language models and domain-relevant auxiliary tasks. 
+    # *arXiv*. https://doi.org/10.48550/arXiv.2011.13230
+    # https://github.com/datamol-io/molfeat
+
     if use_gin:
         logging.info("GIN feature extraction... (may take a while)")
         try:
